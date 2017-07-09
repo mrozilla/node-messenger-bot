@@ -80,12 +80,10 @@ function processPostback(event) {
         if (err) {
           console.log("Error getting user's name: " + err);
         } else {
-          var bodyObj = JSON.parse(body);
-          name = bodyObj.first_name;
-          greeting = 'Meow 🐈';
+          greeting = `Meow 🐈, ${JSON.parse(body).first_name}!`;
         }
-        var message = greeting + 'My name is SP Movie Bot. I can tell you various details regarding movies. What movie would you like to know about?';
-        sendMessage(senderId, { text: message });
+        sendMessage(senderId, { text: greeting });
+        sendMessage(senderId, { text: "I'm Meowslator! You can send me any text and I'll translate it to meowish 🐈💬" });
       }
     );
   }
@@ -105,7 +103,7 @@ function processMessage(event) {
 
     // You may get a text or attachment but not both
     if (message.text) {
-      sendMessage(senderId, { text: 'This translates to meowish 🐈  as:' });
+      sendMessage(senderId, { text: 'This translates to meowish 🐈💬  as:' });
       sendMessage(senderId, { text: translateToMeowish(message.text) });
     } else if (message.attachments) {
       sendMessage(senderId, { text: "Sorry, I don't understand your request." });
@@ -121,19 +119,36 @@ function translateToMeowish(str) {
   if (str.length === 0) {
     return 'Meow!';
   }
-  return str
-    .trim()
-    .split(' ')
-    .map(word => {
-      const letters = [['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], ['i', 'k', 'l', 'm', 'n', 'o', 'p', 'q'], ['r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']];
-      if (letters[0].some(char => word.charAt(0).toLowerCase().indexOf(char) >= 0)) {
-        return 'meow';
-      } else if (letters[1].some(char => word.charAt(0).toLowerCase().indexOf(char) >= 0)) {
-        return 'miau';
-      } else if (letters[2].some(char => word.charAt(0).toLowerCase().indexOf(char) >= 0)) {
-        return 'purr';
+
+  const re = /[^\r\n.!?]+(:?(:?\r\n|[\r\n]|[.!?])+|$)/gi;
+  const sentenceArray = str.trim().match(re);
+
+  function meowifyWords(str) {
+    return str
+      .trim()
+      .split(' ')
+      .map(word => {
+        const letters = [['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], ['i', 'k', 'l', 'm', 'n', 'o', 'p', 'q'], ['r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']];
+        if (letters[0].some(char => word.charAt(0).toLowerCase().indexOf(char) >= 0)) {
+          return 'meow';
+        } else if (letters[1].some(char => word.charAt(0).toLowerCase().indexOf(char) >= 0)) {
+          return 'miau';
+        } else if (letters[2].some(char => word.charAt(0).toLowerCase().indexOf(char) >= 0)) {
+          return 'purr';
+        } else {
+          return word;
+        }
+      })
+      .join(' ');
+  }
+
+  return sentenceArray
+    .map(sentence => {
+      const punctuation = ['.', '?', '!'];
+      if (punctuation.some(char => sentence.charAt(sentence.length - 1).indexOf(char) >= 0)) {
+        return meowifyWords(sentence) + sentence.charAt(sentence.length - 1);
       } else {
-        return word;
+        return meowifyWords(sentence);
       }
     })
     .join(' ');
