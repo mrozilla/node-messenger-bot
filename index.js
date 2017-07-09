@@ -98,7 +98,7 @@ function processMessage(event) {
 
     // You may get a text or attachment but not both
     if (message.text) {
-      sendMessage(senderId, { text: 'This translates to meowish 🐈💬  as:' });
+      sendMessage(senderId, { text: `"${message.text}" translates to meowish 🐈💬 as:` });
       sendMessage(senderId, { text: translateToMeowish(message.text) });
     } else if (message.attachments) {
       sendMessage(senderId, { text: "Sorry, I don't understand your request." });
