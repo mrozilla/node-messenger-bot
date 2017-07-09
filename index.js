@@ -76,14 +76,12 @@ function processPostback(event) {
         method: 'GET',
       },
       function(err, res, body) {
-        var greeting = '';
         if (err) {
           console.log("Error getting user's name: " + err);
         } else {
-          greeting = `Meow 🐈, ${JSON.parse(body).first_name}!`;
+          sendMessage(senderId, { text: `Meow 🐈, ${JSON.parse(body).first_name}!` });
+          sendMessage(senderId, { text: "I'm your personal Meowslator! You can send me any text and I'll translate it to meowish 🐈💬" });
         }
-        sendMessage(senderId, { text: greeting });
-        sendMessage(senderId, { text: "I'm Meowslator! You can send me any text and I'll translate it to meowish 🐈💬" });
       }
     );
   }
