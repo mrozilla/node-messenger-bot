@@ -62,9 +62,6 @@ function processPostback(event) {
   var senderId = event.sender.id;
   var payload = event.postback.payload;
 
-  console.log('Received message from senderId: ' + senderId);
-  console.log('Message is: ' + JSON.stringify(message));
-
   if (payload === 'Greeting') {
     request(
       {
