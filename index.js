@@ -39,15 +39,13 @@ app.get('/webhook', function(req, res) {
 // =============================================================================
 
 app.post('/webhook', function(req, res) {
-  // Make sure this is a page subscription
   if (req.body.object == 'page') {
-    // Iterate over each entry
-    // There may be multiple entries if batched
     req.body.entry.forEach(function(entry) {
-      // Iterate over each messaging event
       entry.messaging.forEach(function(event) {
         if (event.postback) {
           processPostback(event);
+        } else if (event.message) {
+          processMessage(event);
         }
       });
     });
@@ -64,9 +62,10 @@ function processPostback(event) {
   var senderId = event.sender.id;
   var payload = event.postback.payload;
 
+  console.log('Received message from senderId: ' + senderId);
+  console.log('Message is: ' + JSON.stringify(message));
+
   if (payload === 'Greeting') {
-    // Get user's first name from the User Profile API
-    // and include it in the greeting
     request(
       {
         url: 'https://graph.facebook.com/v2.6/' + senderId,
@@ -83,13 +82,61 @@ function processPostback(event) {
         } else {
           var bodyObj = JSON.parse(body);
           name = bodyObj.first_name;
-          greeting = 'Hi ' + name + '. ';
+          greeting = 'Meow 🐈';
         }
         var message = greeting + 'My name is SP Movie Bot. I can tell you various details regarding movies. What movie would you like to know about?';
         sendMessage(senderId, { text: message });
       }
     );
   }
+}
+
+// =============================================================================
+// Process message
+// =============================================================================
+
+function processMessage(event) {
+  if (!event.message.is_echo) {
+    var message = event.message;
+    var senderId = event.sender.id;
+
+    console.log('Received message from senderId: ' + senderId);
+    console.log('Message is: ' + JSON.stringify(message));
+
+    // You may get a text or attachment but not both
+    if (message.text) {
+      sendMessage(senderId, { text: 'This translates to meowish 🐈  as:' });
+      sendMessage(senderId, { text: translateToMeowish(message.text) });
+    } else if (message.attachments) {
+      sendMessage(senderId, { text: "Sorry, I don't understand your request." });
+    }
+  }
+}
+
+// =============================================================================
+// Translate to meowish
+// =============================================================================
+
+function translateToMeowish(str) {
+  if (str.length === 0) {
+    return 'Meow!';
+  }
+  return str
+    .trim()
+    .split(' ')
+    .map(word => {
+      const letters = [['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], ['i', 'k', 'l', 'm', 'n', 'o', 'p', 'q'], ['r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']];
+      if (letters[0].some(char => word.charAt(0).toLowerCase().indexOf(char) >= 0)) {
+        return 'meow';
+      } else if (letters[1].some(char => word.charAt(0).toLowerCase().indexOf(char) >= 0)) {
+        return 'miau';
+      } else if (letters[2].some(char => word.charAt(0).toLowerCase().indexOf(char) >= 0)) {
+        return 'purr';
+      } else {
+        return word;
+      }
+    })
+    .join(' ');
 }
 
 // =============================================================================
