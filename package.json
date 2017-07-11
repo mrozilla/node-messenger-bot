@@ -1,0 +1,26 @@
+{
+  "name": "meowslator-bot",
+  "version": "1.0.0",
+  "description": "translate any language into meowish",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mrozilla/node-messenger-bot.git"
+  },
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "author": "@mrozilla",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3",
+    "request": "^2.81.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb-base": "^11.2.0",
+    "eslint-plugin-import": "^2.7.0"
+  }
+}
