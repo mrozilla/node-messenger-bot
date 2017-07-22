@@ -35,7 +35,7 @@ app.get('/webhook', function(req, res) {
 });
 
 // =============================================================================
-// Callbacks for Messenger will be POST-ed here
+// Listen to callbacks for Messenger
 // =============================================================================
 
 app.post('/webhook', function(req, res) {
@@ -72,12 +72,12 @@ function processPostback(event) {
         },
         method: 'GET',
       },
-      function(err, res, body) {
+      async (err, res, body) => {
         if (err) {
           console.log("Error getting user's name: " + err);
         } else {
-          sendMessage(senderId, { text: `Meow 🐈, ${JSON.parse(body).first_name}!` });
-          sendMessage(senderId, { text: "I'm your personal Meowslator! You can send me any text and I'll translate it to meowish 🐈💬" });
+          await sendMessage(senderId, { text: `Meow 🐈, ${JSON.parse(body).first_name}!` });
+          await sendMessage(senderId, { text: "I'm your personal Meowslator! You can send me any text and I'll translate it to meowish 🐈💬" });
         }
       }
     );
@@ -88,7 +88,7 @@ function processPostback(event) {
 // Process message
 // =============================================================================
 
-function processMessage(event) {
+async function processMessage(event) {
   if (!event.message.is_echo) {
     var message = event.message;
     var senderId = event.sender.id;
@@ -98,12 +98,39 @@ function processMessage(event) {
 
     // You may get a text or attachment but not both
     if (message.text) {
-      sendMessage(senderId, { text: `"${message.text}" translates to meowish 🐈💬 as:` });
-      sendMessage(senderId, { text: translateToMeowish(message.text) });
+      await sendMessage(senderId, { text: `"${message.text}" translates to meowish 🐈💬 as:` });
+      await sendMessage(senderId, { text: translateToMeowish(message.text) });
     } else if (message.attachments) {
-      sendMessage(senderId, { text: "Sorry, I don't understand your request." });
+      await sendMessage(senderId, { text: "Sorry, I don't understand your request." });
     }
   }
+}
+
+// =============================================================================
+// Send message to user
+// =============================================================================
+
+function sendMessage(recipientId, message) {
+  return new Promise(resolve => {
+    resolve(
+      request(
+        {
+          url: 'https://graph.facebook.com/v2.6/me/messages',
+          qs: { access_token: process.env.PAGE_ACCESS_TOKEN },
+          method: 'POST',
+          json: {
+            recipient: { id: recipientId },
+            message: message,
+          },
+        },
+        (error, response, body) => {
+          if (error) {
+            console.log('Error sending message: ' + response.error);
+          }
+        }
+      )
+    );
+  });
 }
 
 // =============================================================================
@@ -147,27 +174,4 @@ function translateToMeowish(str) {
       }
     })
     .join(' ');
-}
-
-// =============================================================================
-// Send message to user
-// =============================================================================
-
-function sendMessage(recipientId, message) {
-  request(
-    {
-      url: 'https://graph.facebook.com/v2.6/me/messages',
-      qs: { access_token: process.env.PAGE_ACCESS_TOKEN },
-      method: 'POST',
-      json: {
-        recipient: { id: recipientId },
-        message: message,
-      },
-    },
-    function(error, response, body) {
-      if (error) {
-        console.log('Error sending message: ' + response.error);
-      }
-    }
-  );
 }
