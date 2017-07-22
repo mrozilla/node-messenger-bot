@@ -1,13 +1,24 @@
+// =============================================================================
+// Listen to events
+// =============================================================================
+
 process.stdin.resume();
 process.stdin.setEncoding('utf8');
 
-process.stdin.on('data', function(text) {
-  console.log(`"${text.trim()}" translates to meowish 🐈💬 as:`);
-  console.log(translateToMeowish(text));
-  if (text === 'quit') {
-    done();
-  }
-});
+process.stdin.on('data', text => processMessage(text));
+
+// =============================================================================
+// Process message
+// =============================================================================
+
+async function processMessage(text) {
+  await sendMessage(`"${text.trim()}" translates to meowish 🐈💬 as:`);
+  await sendMessage(translateToMeowish(text));
+}
+
+// =============================================================================
+// Translate to meowish
+// =============================================================================
 
 function translateToMeowish(str) {
   if (str.length === 0) {
@@ -51,4 +62,15 @@ function translateToMeowish(str) {
 function done() {
   console.log('Bye!');
   process.exit();
+}
+
+// =============================================================================
+// Send message
+// =============================================================================
+
+function sendMessage(message) {
+  // fake async
+  return new Promise(resolve => {
+    resolve(console.log(message));
+  });
 }
